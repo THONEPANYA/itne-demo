@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Blacklist Seller (Demo)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDKs (Commented out for Demo Mode) -->
+  <!--
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    
+    // Make Firebase services globally accessible
+    window.firebase = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, getFirestore, signOut };
+  </script>
+  -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@100..900&display=swap');
+
+    body {
+      box-sizing: border-box;
+      font-family: 'Noto Sans Lao', sans-serif;
+      background-color: #f3f4f6; /* bg-gray-100 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overscroll-behavior: none; /* Prevents pull-to-refresh */
+    }
+    * { font-family: 'Noto Sans Lao', sans-serif; }
+
+    /* iPhone 14 Pro Max optimizations */
+    .container-mobile {
+      width: 430px;
+      height: 932px;
+      margin: 0 auto;
+      background-color: #f3f4f6; /* bg-gray-100 */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      overflow: hidden;
+      border-radius: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .main-content {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-bottom: 90px; /* Space for bottom nav */
+    }
+
+    @media (max-width: 430px) {
+      .container-mobile {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+      }
+    }
+
+    .fade-in { animation: fadeIn 0.3s ease-in-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Notification animations */
+    @keyframes slideInFromTop { from { transform: translateY(-100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes slideOutToTop { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100px); opacity: 0; } }
+    @keyframes pulseNotification {
+      0%,100% { transform: scale(1); box-shadow: 0 10px 25px rgba(239,68,68,.3); }
+      50%     { transform: scale(1.02); box-shadow: 0 15px 35px rgba(239,68,68,.4); }
+    }
+
+    /* Bottom Nav Bar Styles */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px; /* Base height */
+      background-color: #ffffff;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      border-top: 1px solid #e5e7eb;
+      padding-bottom: env(safe-area-inset-bottom); /* Safe area for iPhone notch */
+    }
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      height: 100%;
+      color: #9ca3af; /* text-gray-400 */
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    .bottom-nav-item svg {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 2px;
+    }
+    .bottom-nav-item span {
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+    .bottom-nav-item.active {
+      color: #dc2626; /* text-red-600 */
+    }
+    
+    /* Floating Action Button (FAB) for Report */
+    .fab-report-button {
+      position: absolute;
+      bottom: 40px; /* Adjust as needed */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+      cursor: pointer;
+      z-index: 10;
+      padding-bottom: env(safe-area-inset-bottom);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .fab-report-button:active {
+        transform: translateX(-50%) scale(0.95);
+        box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+    }
+    .fab-report-button svg {
+      width: 28px;
+      height: 28px;
+    }
+    
+    /* Auth Form Tabs - NEW STYLE */
+    .auth-tab-button {
+        flex: 1;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-align: center;
+        color: #6b7280; /* text-gray-500 */
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border-radius: 0.5rem;
+    }
+    .auth-tab-button.active {
+        background-color: #ffffff;
+        color: #dc2626; /* text-red-600 */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    /* General Styles */
+    .safe-top    { padding-top: env(safe-area-inset-top); }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    .touch-target { min-height: 48px; min-width: 48px; }
+    .scroll-smooth { -webkit-overflow-scrolling: touch; }
+    
+    /* New Report Card Style */
+    .report-card {
+        background-color: #ffffff;
+        border-radius: 0.75rem; /* rounded-xl */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb; /* border-gray-200 */
+        padding: 1.25rem; /* p-5 */
+    }
+    
+    /* Ad Banner Styles */
+    .ad-banner-container {
+        padding-bottom: 0;
+    }
+    .ad-item {
+        display: block; 
+        width: 100%;    
+        height: 140px; 
+        margin-right: 0; 
+        border-radius: 0.75rem; 
+        background-color: #e5e7eb; 
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .ad-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity 0.5s ease-in-out; 
+    }
+    
+    /* Social Login Button Style */
+    .social-login-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db; /* border-gray-300 */
+        background-color: #ffffff;
+        color: #374151; /* text-gray-700 */
+        font-weight: 500;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .social-login-button:hover {
+        background-color: #f9fafb; /* bg-gray-50 */
+    }
+    .social-login-button svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.75rem; /* mr-3 */
+    }
+    
+  </style>
+</head>
+<body class="bg-gray-300">
+  <div class="container-mobile">
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+        <div class="bg-white rounded-lg p-6 flex flex-col items-center shadow-xl">
+            <svg class="animate-spin h-8 w-8 text-red-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-base font-medium text-gray-700">ກຳລັງປະມວນຜົນ AI...</p>
+        </div>
+    </div>
+    
+    <!-- Main Content Area (Scrollable) -->
+    <div class="main-content scroll-smooth">
+
+      <!-- HOME SCREEN -->
+      <div id="homeScreen" class="fade-in">
+        <!-- Header (NEW: White) -->
+        <div class="bg-white text-gray-900 safe-top shadow-sm sticky top-0 z-10 border-b border-gray-200">
+          <div class="p-5 flex items-center justify-between">
+            <h1 class="text-xl font-bold">Blacklist Seller</h1>
+            <div class="text-sm font-medium text-gray-500">Vientiane, LA</div>
+          </div>
+        </div>
+        
+        <!-- Ads Banner -->
+        <div class="px-5 pt-5 pb-2">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">ໂຄສະນາ & ຂ່າວສານ</h2>
+            <div class="ad-banner-container">
+                <div class="ad-item">
+                    <img id="adBannerImage" src="https://placehold.co/390x140/ef4444/white?text=Ad+Banner+1" alt="Ad Banner 1">
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reports -->
+        <div class="px-5 py-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-gray-800">ລາຍງານລ່າສຸດ</h2>
+            <span onclick="navigateToSearch()" class="text-sm text-red-600 font-medium cursor-pointer">ເບິ່ງທັງໝົດ</span>
+          </div>
+          <div id="recentReportsContainer" class="space-y-3">
+            <p class="text-center text-gray-500 py-4">ກຳລັງໂຫຼດ...</p>
+          </div>
+        </div>
+        
+      </div>
+
+      <!-- SEARCH SCREEN -->
+      <div id="searchScreen" class="hidden">
+        <!-- Header -->
+        <div class="bg-white shadow-sm safe-top sticky top-0 z-10">
+          <div class="p-5">
+            <h1 class="text-xl font-bold text-gray-900 mb-4">ຄົ້ນຫາ Blacklist</h1>
+            <input type="text" id="searchBar" class="w-full px-5 py-3 border-2 border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target" placeholder="🔍 ຄົ້ນຫາຊື່, ເບີໂທ, ຫຼືເລກບັນຊີ">
+          </div>
+          <div class="px-5 pb-3 border-b border-gray-200">
+             <div class="text-sm text-gray-500">
+                ພົບ <span id="publicReportsTotal" class="font-bold text-red-500">0</span> ລາຍການ
+             </div>
+          </div>
+        </div>
+        
+        <!-- Search Results -->
+        <div id="publicReportsContainer" class="p-5 space-y-3">
+          <!-- Public reports will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <!-- REPORT SCREEN -->
+      <div id="reportScreen" class="hidden">
+        <!-- Header -->
+        <div class="bg-white text-gray-900 safe-top shadow-sm sticky top-0 z-10 border-b border-gray-200">
+          <div class="p-5 flex items-center relative justify-center">
+            <h1 class="text-xl font-bold text-center">ແຈ້ງລາຍງານໃໝ່</h1>
+            <button onclick="navigateToHome()" class="absolute right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 touch-target">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white px-6 py-6 scroll-smooth">
+          <form id="reportForm" class="space-y-6">
+            <div>
+              <label class="block text-base font-medium text-gray-700 mb-3">ຊື່ຜູ້ຂາຍ/ຮ້ານຄ້າ *</label>
+              <input type="text" id="sellerName" required
+                     class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-lg touch-target"
+                     placeholder="ລະບຸຊື່ຜູ້ຂາຍຫຼືຊື່ຮ້ານ">
+            </div>
+
+            <div>
+              <label class="block text-base font-medium text-gray-700 mb-3">ຊ່ອງທາງການຂາຍ *</label>
+              <select id="platform" required
+                      class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-lg touch-target">
+                <option value="">ເລືອກຊ່ອງທາງການຂາຍ</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Line">Line</option>
+                <option value="Shopee">Shopee</option>
+                <option value="Lazada">Lazada</option>
+                <option value="ເວັບໄຊທ໌">ເວັບໄຊທ໌</option>
+                <option value="ອື່ນໆ">ອື່ນໆ</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-base font-medium text-gray-700 mb-3">ຂໍ້ມູນຕິດຕໍ່ຜູ້ຂາຍ</label>
+              <input type="text" id="contact"
+                     class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-lg touch-target"
+                     placeholder="ເບີໂທ, Line ID, ຫຼືຂໍ້ມູນຕິດຕໍ່ອື່ນໆ">
+            </div>
+
+            <div>
+              <label class="block text-base font-medium text-gray-700 mb-3">ປະເພດການໂກງ *</label>
+              <select id="scamType" required
+                      class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-lg touch-target">
+                <option value="">ເລືອກປະເພດການໂກງ</option>
+                <option value="ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ">ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ</option>
+                <option value="ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ">ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ</option>
+                <option value="ສິນຄ້າປອມ/ເລຽນແບບ">ສິນຄ້າປອມ/ເລຽນແບບ</option>
+                <option value="ບໍ່ຍອມຄືນເງິນ">ບໍ່ຍອມຄືນເງິນ</option>
+                <option value="ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ">ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ</option>
+                <option value="ອື່ນໆ">ອື່ນໆ</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-base font-medium text-gray-700 mb-3">ຈຳນວນເງິນທີ່ເສຍຫາຍ</label>
+              <input type="number" id="amount"
+                     class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-lg touch-target"
+                     placeholder="ລະບຸຈຳນວນເງິນ (ກີບ)">
+            </div>
+            
+            <!-- GEMINI FEATURE: AI Analyzer -->
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                  <label class="block text-base font-medium text-gray-700">ລາຍລະອຽດເພີ່ມເຕີມ *</label>
+                  <button type="button" id="analyzeReportButton" class="text-sm text-red-600 font-medium flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 5a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z"/></svg>
+                      ✨ ວິເຄາະດ້ວຍ AI
+                  </button>
+              </div>
+              <textarea id="details" required rows="5"
+                        class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-lg resize-none"
+                        placeholder="ອະທິບາຍລາຍລະອຽດການໂດນໂກງ..."></textarea>
+              
+              <div id="aiAnalysisResult" class="hidden mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
+                  <h4 class="text-base font-bold text-red-700 mb-2">✨ ຜົນການວິເຄາະ AI</h4>
+                  <p class="text-sm text-gray-700 mb-2"><strong>ສະຫຼຸບ:</strong> <span id="aiSummary">...</span></p>
+                  <p class="text-sm text-gray-700 mb-2"><strong>ປະເພດທີ່ແນະນຳ:</strong> <span id="aiScamType">...</span></p>
+                  <p class="text-sm text-gray-700"><strong>ຂໍ້ມູນທີ່ກ່ຽວຂ້ອງ:</strong> <span id="aiContact">...</span></p>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-base font-medium text-gray-700 mb-3">ຊື່ຜູ້ແຈ້ງ *</label>
+              <input type="text" id="reporterName" required
+                     class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-lg touch-target"
+                     placeholder="ຊື່ຂອງທ່ານ">
+            </div>
+
+            <div class="pt-6 pb-8 safe-bottom">
+              <button type="submit"
+                      class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-5 px-6 rounded-xl transition-colors text-xl touch-target shadow-lg shadow-red-500/50">
+                🚨 ສົ່ງລາຍງານ
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- MY REPORTS SCREEN -->
+      <div id="myReportsScreen" class="hidden">
+        <!-- Header -->
+        <div class="bg-white text-gray-900 safe-top shadow-sm sticky top-0 z-10 border-b border-gray-200">
+          <div class="p-5 flex items-center relative">
+            <button onclick="navigateToProfile()" class="absolute left-4 text-gray-600 p-2 rounded-full hover:bg-gray-100 touch-target">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <h1 class="text-xl font-bold text-center w-full">ລາຍການຂອງຂ້ອຍ</h1>
+          </div>
+        </div>
+
+        <div class="bg-gray-100 min-h-full">
+          <div class="px-6 py-4 border-b border-gray-200 bg-white">
+            <div class="text-base text-gray-500">
+              ລາຍງານຂອງຂ້ອຍ: <span id="myReportsTotal" class="font-bold text-red-600">0</span> ລາຍການ
+            </div>
+          </div>
+          <div id="myReportsContainer" class="p-5 space-y-3">
+            <!-- Auth required or report list goes here -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- PROFILE / AUTH SCREEN -->
+      <div id="userProfileScreen" class="hidden">
+        <!-- Header -->
+        <div class="bg-white text-gray-900 safe-top shadow-sm sticky top-0 z-10 border-b border-gray-200">
+          <div class="p-5 flex items-center justify-center">
+            <h1 class="text-xl font-bold">ໂປຣໄຟລ໌</h1>
+          </div>
+        </div>
+        
+        <!-- Logged In View -->
+        <div id="profileViewContainer" class="hidden p-6">
+            <div class="text-center py-8">
+                <div class="mx-auto bg-red-500 text-white rounded-full w-24 h-24 flex items-center justify-center text-4xl mb-4 shadow-lg shadow-red-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">ບັນຊີ Demo</h2> 
+                <p class="text-sm text-gray-500">ສະຖານະ: <span class="text-green-500 font-bold">ເຂົ້າສູ່ລະບົບແລ້ວ</span></p>
+            </div>
+            
+            <!-- Stats Section -->
+            <div class="pb-4">
+              <h2 class="text-lg font-bold text-gray-800 mb-4">ສະຖິຕິລວມ</h2>
+              <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="grid grid-cols-2 gap-6">
+                  <div class="text-center">
+                    <div class="text-4xl font-bold text-red-500 mb-2" id="totalScams">0</div>
+                    <div class="text-base text-gray-600">ລາຍງານທັງໝົດ</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-4xl font-bold text-orange-500 mb-2" id="totalDamage">0M</div>
+                    <div class="text-base text-gray-600">ເສຍຫາຍລວມ (ກີບ)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 mb-6 shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-700 mb-3">ລາຍລະອຽດບັນຊີ</h3>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <strong class="text-gray-600">Demo User ID:</strong> 
+                        <p id="profileUserId" class="break-all text-gray-800 mt-1 font-mono text-xs">...</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="navigateToMyReports()"
+                    class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl transition-colors text-lg touch-target shadow-lg shadow-red-500/50 mb-4 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="M16 5l3 3"/></svg>
+                <span>ເບິ່ງລາຍການຂອງຂ້ອຍ (<span id="profileReportCountBtn">0</span>)</span>
+            </button>
+
+            <button onclick="handleLogout()"
+                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-xl transition-colors text-lg touch-target shadow-lg">
+                ອອກຈາກລະບົບ (Logout)
+            </button>
+        </div>
+        
+        <!-- Auth View (Login/Register) -->
+        <div id="profileAuthContainer" class="hidden p-6">
+            <div class="text-center py-8">
+                <div class="text-6xl mb-4">🔒</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">ຢືນຢັນຕົວຕົນ (Demo)</h3> 
+                <p class="text-gray-600">ກົດປຸ່ມເພື່ອຈຳລອງການເຂົ້າສູ່ລະບົບ</p>
+            </div>
+
+            <!-- Tab/Segment Control -->
+            <div class="flex rounded-xl mb-6 p-1 bg-gray-200">
+                <button id="loginTab" onclick="switchProfileAuthMode('login')" class="auth-tab-button active">
+                    ເຂົ້າສູ່ລະບົບ
+                </button>
+                <button id="registerTab" onclick="switchProfileAuthMode('register')" class="auth-tab-button">
+                    ລົງທະບຽນ
+                </button>
+            </div>
+            
+            <form id="authForm" onsubmit="event.preventDefault(); handleAuthForm()">
+                <input type="hidden" id="authModalContext" value="profile">
+                <input type="hidden" id="authMode" value="login">
+
+                <div class="space-y-4 mb-6">
+                    <input type="email" id="authEmail" placeholder="ອີເມວ Demo (ໃສ່ຫຍັງກໍໄດ້)" 
+                           class="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-base">
+                    <input type="password" id="authPassword" placeholder="ລະຫັດຜ່ານ Demo (ໃສ່ຫຍັງກໍໄດ້)" 
+                           class="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-base">
+                    
+                    <input type="password" id="authConfirmPassword" placeholder="ຢືນຢັນລະຫັດຜ່ານ"
+                           class="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-base hidden">
+                </div>
+                
+                <button type="submit" id="authSubmitButton"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl transition-colors text-lg touch-target shadow-lg shadow-red-500/50">
+                    ເຂົ້າສູ່ລະບົບ (Demo)
+                </button>
+            </form>
+            
+            <!-- ADDED: Social Login Divider and Buttons -->
+            <div class="my-6 flex items-center">
+                <hr class="flex-grow border-gray-300">
+                <span class="px-4 text-sm text-gray-500">ຫຼື ເຂົ້າສູ່ລະບົບຜ່ານ</span>
+                <hr class="flex-grow border-gray-300">
+            </div>
+
+            <div class="space-y-3">
+                <button type="button" onclick="handleAuthForm()" class="w-full social-login-button">
+                    <!-- Google SVG Icon -->
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.05 1.05-2.86 1.73-4.84 1.73-5.61 0-10.12-4.38-10.12-9.79s4.51-9.8 10.12-9.8c3.08 0 5.06 1.18 6.46 2.55l-2.6 2.6c-.95-.91-2.22-1.46-4.01-1.46-3.4 0-6.17 2.72-6.17 6.1s2.77 6.1 6.17 6.1c2.18 0 3.16-.91 3.73-1.46.46-.42.7-.97.83-1.73h-4.56z" fill="#4285F4"/></svg>
+                    ດຳເນີນການຕໍ່ດ້ວຍ Google
+                </button>
+                <button type="button" onclick="handleAuthForm()" class="w-full social-login-button">
+                    <!-- Facebook SVG Icon -->
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Facebook</title><path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.14 9.5 5.35V7.46H6.11V12h3.4v8.19h5V12h3.85l.42-4.54z" fill="#1877F2"/></svg>
+                    ດຳເນີນການຕໍ່ດ້ວຍ Facebook
+                </button>
+                <button type="button" onclick="handleAuthForm()" class="w-full social-login-button">
+                   <!-- WhatsApp SVG Icon -->
+                   <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>WhatsApp</title><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.79.46 3.48 1.29 4.94L2 22l5.3-1.39c1.41.74 3.02 1.17 4.74 1.17 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2m.01 18.01c-1.55 0-3.04-.4-4.33-1.15l-.31-.18-3.22.84.86-3.14-.2-.32c-.83-1.35-1.27-2.93-1.27-4.58 0-4.41 3.59-8 8.01-8 4.41 0 8 3.59 8 8s-3.59 8.01-8 8.01M17.48 14.5c-.15-.08-1.02-.51-1.18-.56-.16-.06-.28-.08-.41.08-.13.15-.45.56-.55.68-.1.13-.2.15-.38.08-.18-.08-1.01-.37-1.92-1.18-.71-.63-1.19-1.41-1.33-1.65-.15-.25-.01-.38.06-.51l.14-.17c.07-.08.13-.2.2-.33.07-.13.04-.25-.02-.33-.06-.08-.41-1-.56-1.37-.16-.36-.31-.31-.43-.31-.11 0-.23-.01-.35-.01s-.33.04-.51.23c-.18.18-.69.67-.69 1.63 0 .96.71 1.89.81 2.04.1.15 1.39 2.12 3.37 2.97.47.2.83.31 1.12.4.45.13.85.11 1.17.07.36-.04 1.02-.41 1.16-.81.14-.39.14-.73.1-.81-.04-.08-.15-.13-.31-.2z" fill="#25D366"/></svg>
+                    ດຳເນີນການຕໍ່ດ້ວຍ WhatsApp
+                </button>
+            </div>
+            <!-- END ADDED -->
+
+        </div>
+        
+      </div>
+
+      <!-- CONTACT SCREEN -->
+      <div id="contactScreen" class="hidden">
+        <!-- Header -->
+        <div class="bg-white text-gray-900 safe-top shadow-sm sticky top-0 z-10 border-b border-gray-200">
+          <div class="p-5 flex items-center justify-center">
+            <h1 class="text-xl font-bold">ຕິດຕໍ່ເຮົາ</h1>
+          </div>
+        </div>
+        
+        <!-- Contact Content -->
+        <div class="p-6 space-y-6">
+          <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+              <h3 class="text-lg font-bold text-gray-700 mb-4">ຂໍ້ມູນການຕິດຕໍ່</h3>
+              <div class="space-y-4">
+                  <div class="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600 mt-1 mr-3 flex-shrink-0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                      <div>
+                          <strong class="text-gray-700">ອີເມວ</strong>
+                          <p class="text-gray-600">support.blacklist@itne.com</p>
+                      </div>
+                  </div>
+                  <div class="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600 mt-1 mr-3 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                      <div>
+                          <strong class="text-gray-700">ເບີໂທ</strong>
+                          <p class="text-gray-600">(+856) 20 55 123 456</p>
+                      </div>
+                  </div>
+                  <div class="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600 mt-1 mr-3 flex-shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                      <div>
+                          <strong class="text-gray-700">ທີ່ຢູ່</strong>
+                          <p class="text-gray-600">ຖະໜົນສາຍລົມ, ບ້ານສີສະຫວາດ, ນະຄອນຫຼວງວຽງຈັນ</p>
+                      </div>
+                  </div>
+              </div>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- End Main Content Area -->
+
+    <!-- EDIT MODAL -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+      <div class="bg-white rounded-t-2xl shadow-2xl m-0 w-full h-full max-h-[95vh] overflow-y-auto scroll-smooth">
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center safe-top">
+          <h3 class="text-xl font-bold text-gray-800">ແກ້ໄຂລາຍງານ</h3>
+          <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-3xl w-12 h-12 flex items-center justify-center touch-target">×</button>
+        </div>
+        <form id="editForm" class="px-6 py-6 space-y-6">
+          <input type="hidden" id="editId">
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">ຊື່ຜູ້ຂາຍ/ຮ້ານຄ້າ</label>
+            <input type="text" id="editSellerName" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg touch-target">
+          </div>
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">ຊ່ອງທາງການຂາຍ</label>
+            <select id="editPlatform" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg touch-target">
+              <option value="Facebook">Facebook</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Line">Line</option>
+              <option value="Shopee">Shopee</option>
+              <option value="Lazada">Lazada</option>
+              <option value="ເວັບໄຊທ໌">ເວັບໄຊທ໌</option>
+              <option value="ອື່ນໆ">ອື່ນໆ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">ຂໍ້ມູນຕິດຕໍ່ຜູ້ຂາຍ</label>
+            <input type="text" id="editContact" class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg touch-target">
+          </div>
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">ປະເພດການໂກງ</label>
+            <select id="editScamType" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg touch-target">
+              <option value="ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ">ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ</option>
+              <option value="ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ">ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ</option>
+              <option value="ສິນຄ້າປອມ/ເລຽນແບບ">ສິນຄ້າປອມ/ເລຽນແບບ</option>
+              <option value="ບໍ່ຍອມຄືນເງິນ">ບໍ່ຍອມຄືນເງິນ</option>
+              <option value="ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ">ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ</option>
+              <option value="ອື່ນໆ">ອື່ນໆ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">ຈຳນວນເງິນທີ່ເສຍຫາຍ</label>
+            <input type="number" id="editAmount" class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:focus:border-red-500 text-lg touch-target">
+          </div>
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">ລາຍລະອຽດເພີ່ມເຕີມ</label>
+            <textarea id="editDetails" required rows="4" class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg resize-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">ຊື່ຜູ້ແຈ້ງ</label>
+            <input type="text" id="editReporterName" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg touch-target">
+          </div>
+          <div class="pt-6 pb-8 space-y-4 safe-bottom">
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-5 px-6 rounded-xl transition-colors text-lg touch-target shadow-lg">
+              ✅ ບັນທຶກການແກ້ໄຂ
+            </button>
+            <button type="button" id="cancelEdit" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-5 px-6 rounded-xl transition-colors text-lg touch-target shadow-lg">
+              ❌ ຍົກເລີກ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- BOTTOM NAVIGATION BAR -->
+    <div id="bottomNavBar" class="bottom-nav">
+      <!-- Home -->
+      <div id="navHome" class="bottom-nav-item active" onclick="navigateToHome()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>ໜ້າຫຼັກ</span>
+      </div>
+      <!-- Search -->
+      <div id="navSearch" class="bottom-nav-item" onclick="navigateToSearch()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span>ຄົ້ນຫາ</span>
+      </div>
+      <!-- Spacer for FAB -->
+      <div class="bottom-nav-item" style="flex: 1.0;"></div> 
+
+      <!-- Contact Button -->
+      <div id="navContact" class="bottom-nav-item" onclick="navigateToContact()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>ຕິດຕໍ່</span>
+      </div>
+
+      <!-- Profile -->
+      <div id="navProfile" class="bottom-nav-item" onclick="navigateToProfile()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>ໂປຣໄຟລ໌</span>
+      </div>
+    </div>
+    
+    <!-- Floating Action Button (Report) -->
+    <div class="fab-report-button" onclick="navigateToReportForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </div>
+
+  </div> <!-- End Container Mobile -->
+
+  <script>
+// --- DEMO MODE STATE ---
+let isLoggedIn = false;
+let demoUserId = null;
+// --- END DEMO MODE STATE ---
+
+// Data storage (remains the same)
+let myReports = []; // Will only persist during the session in demo mode
+let publicReports = [
+  { id: 1, sellerName: "ຮ້ານແຟຊັ່ນປອມ", platform: "Facebook", contact: "ເບີໂທ: 020 55512345", 
+    scamType: "ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ", amount: "250000",
+    details: "ສັ່ງເສື້ອແບຣນເນມ ...", reporterName: "ນາຍສົມຊາຍ ໃຈດີ", date: "15/11/2567", isMyReport: false },
+  { id: 2, sellerName: "TechGadget Pro", platform: "Instagram", contact: "IG: @techgadget_pro",
+    scamType: "ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ", amount: "1500000",
+    details: "ໂອນເງິນຊື້ iPhone ...", reporterName: "ນາງສາວມາລີ ຮັກດີ", date: "12/11/2567", isMyReport: false },
+  { id: 3, sellerName: "ຮ້ານຂາຍຢາອອນລາຍ", platform: "Line", contact: "Line: medicine_shop",
+    scamType: "ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ", amount: "320000",
+    details: "ຂາຍຢາລົດນ້ຳໜັກປອມ ...", reporterName: "ນາງສຸດາ ສຸກໃຈ", date: "10/11/2567", isMyReport: false },
+  { id: 4, sellerName: "Gaming Store 999", platform: "Shopee", contact: "Shopee: gamingstore999", 
+    scamType: "ສິນຄ້າປອມ/ເລຽນແບບ", amount: "850000",
+    details: "ຊື້ PlayStation 5 ...", reporterName: "ນາຍທະນາ ເກມເມີ", date: "8/11/2567", isMyReport: false },
+  { id: 5, sellerName: "Beauty Cosmetic", platform: "ເວັບໄຊທ໌", contact: "www.beauty-cosmetic.fake",
+    scamType: "ບໍ່ຍອມຄືນເງິນ", amount: "420000",
+    details: "ຊື້ຄຣີມບຳລຸງຜິວ ...", reporterName: "ນາງນິດາ ສວຍງາມ", date: "5/11/2567", isMyReport: false },
+  { id: 6, sellerName: "INTHONE", platform: "Facebook", contact: "ເບີໂທ: 020 52862004",
+    scamType: "ບິດເງິນ", amount: "50000",
+    details: "ບິດເງິນ ໄປລົງທຶນ bitcoin", reporterName: "ອອຍ ສະຫວັນ", date: "9/29/2567", isMyReport: false },
+  { id: 7, sellerName: "Gadget Store Online", platform: "Lazada", contact: "Lazada: gadgetstore_lz",
+    scamType: "ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ", amount: "750000",
+    details: "ສັ່ງຊື້ຫູຟັງໄຮ້ສາຍ ໂອນເງິນແລ້ວ ຜູ້ຂາຍບໍ່ຕອບ", reporterName: "ນາງດາວັນ", date: "4/11/2567", isMyReport: false },
+  { id: 8, sellerName: "ຮ້ານເຄື່ອງສຳອາງ By Joy", platform: "Instagram", contact: "IG: @joy_cosmetics",
+    scamType: "ສິນຄ້າປອມ/ເລຽນແບບ", amount: "310000",
+    details: "ສັ່ງຄຣີມກັນແດດຍີ່ຫໍ້ດັງ ໄດ້ຮັບຂອງປອມ", reporterName: "ນາງສາວສຸດໃຈ", date: "2/11/2567", isMyReport: false },
+  { id: 9, sellerName: "Mobile Phone Hub", platform: "Facebook", contact: "FB: Mobile Phone Hub",
+    scamType: "ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ", amount: "2200000",
+    details: "ໂຄສະນາຂາຍ iPhone 14 ມືສອງລາຄາຖືກ ໂອນມັດຈຳແລ້ວບລັອກ", reporterName: "ທ້າວສົມສັກ", date: "1/11/2567", isMyReport: false },
+  { id: 10, sellerName: "ຄົນຮັບຫິ້ວສິນຄ້າ", platform: "Line", contact: "Line: @preorder_th",
+    scamType: "ບໍ່ຍອມຄືນເງິນ", amount: "150000",
+    details: "ຝາກຫິ້ວເສື້ອຜ້າຈາກໄທ ບອກວ່າຂອງໝົດ ບໍ່ຍອມໂອນເງິນຄືນ", reporterName: "ນາງມະນີ", date: "30/10/2567", isMyReport: false },
+  { id: 11, sellerName: "Sivilay Trading", platform: "ເວັບໄຊທ໌", contact: "www.sivilay-trading.com",
+    scamType: "ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ", amount: "950000",
+    details: "ສັ່ງຊື້ໂນດບຸກມືສອງ ແຕ່ໄດ້ຮັບເຄື່ອງທີ່ສະເປັກຕ່ຳກວ່າ", reporterName: "ທ້າວໄຊຍະ", date: "28/10/2567", isMyReport: false },
+  { id: 12, sellerName: "TKT Shop", platform: "Facebook", contact: "ເບີໂທ: 020 98765432",
+    scamType: "ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ", amount: "400000",
+    details: "ສັ່ງເຄື່ອງຫຼິ້ນເດັກນ້ອຍ ຜ່ານໄປ 2 ອາທິດ ຍັງບໍ່ໄດ້ຮັບຂອງ", reporterName: "ນາງພອນທິບ", date: "25/10/2567", isMyReport: false },
+  { id: 13, sellerName: "FastTech Lao", platform: "Instagram", contact: "IG: @fasttech.lao",
+    scamType: "ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ", amount: "1100000",
+    details: "ຫຼອກຂາຍກ້ອງຖ່າຍຮູບ ໃຫ້ໂອນເງິນເຕັມຈຳນວນ ແລ້ວປິດໄອຈີໜີ", reporterName: "ທ້າວອາລຸນ", date: "22/10/2567", isMyReport: false },
+  { id: 14, sellerName: "ຮ້ານ Bounma Computer", platform: "Shopee", contact: "Shopee: Bounma Comp",
+    scamType: "ສິນຄ້າປອມ/ເລຽນແບບ", amount: "620000",
+    details: "ຊື້ RAM ຄອມພິວເຕີ ໄດ້ຮັບສິນຄ້າທີ່ຄືຂອງປອມ ໃຊ້ງານບໍ່ໄດ້", reporterName: "ທ້າວວິລະ", date: "20/10/2567", isMyReport: false },
+  { id: 15, sellerName: "Preorder Korea by Noon", platform: "Facebook", contact: "FB: Noon Preorder Korea",
+    scamType: "ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ", amount: "530000",
+    details: "ສັ່ງອັລບັ້ມ K-Pop ໂອນເງິນຕັ້ງແຕ່ເດືອນກ່ອນ ຕອນນີ້ຕິດຕໍ່ບໍ່ໄດ້", reporterName: "ນາງສາວຟ້າ", date: "18/10/2567", isMyReport: false },
+  { id: 16, sellerName: "Phet's Phone Shop", platform: "Line", contact: "Line: @phetphone",
+    scamType: "ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ", amount: "1800000",
+    details: "ສັ່ງ Samsung S23 Ultra ໄດ້ຮັບເຄື່ອງຈີນກັອບປີ້", reporterName: "ທ້າວເພັດສະໝອນ", date: "15/10/2567", isMyReport: false }
+];
+let nextId = 17;
+let afterAuthContext = 'home'; // Stores where to go after auth
+
+// --- FIREBASE AND AUTH STATE (Demo Mode) ---
+let isAuthReady = true; // Auth is always 'ready' in demo mode
+
+// --- END FIREBASE AND AUTH STATE ---
+
+// Global variables for DOM elements
+let homeScreen, searchScreen, reportScreen, myReportsScreen, userProfileScreen, loadingOverlay, contactScreen; 
+let reportForm, editModal, editForm, searchBar;
+let profileViewContainer, profileAuthContainer;
+let authEmailInput, authPasswordInput, authConfirmPasswordInput, authSubmitButton, authModeInput;
+let analyzeReportButton, aiAnalysisResult, aiSummary, aiScamType, aiContact;
+
+// Function to initialize Firebase and Auth (Demo Mode - No Firebase needed)
+async function initFirebase() {
+  console.log("Running in Demo Mode. Firebase is disabled.");
+  isAuthReady = true; 
+  // No Firebase initialization needed
+}
+// ---------------------------------
+
+// --- GEMINI API FUNCTIONS (Remains the same) ---
+
+// Show/Hide Loading Overlay
+function showLoading(message = "ກຳລັງປະມວນຜົນ AI...") {
+    if (loadingOverlay) {
+        loadingOverlay.querySelector('p').textContent = message;
+        loadingOverlay.classList.remove('hidden');
+    }
+}
+
+function hideLoading() {
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+    }
+}
+
+async function callGeminiApi(reportText) {
+    const apiKey = ""; // Left empty, will be provisioned by Canvas
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+    const systemPrompt = `You are an expert scam analyst for a Lao-based "Blacklist Seller" app. Your goal is to analyze a user's report, provided in Lao, and return a structured JSON response.
+    - summary: Briefly summarize the incident in Lao (1-2 sentences).
+    - suggested_scam_type: Choose the *best* matching category from this exact list: ["ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ", "ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ", "ສິນຄ້າປອມ/ເລຽນແບບ", "ບໍ່ຍອມຄືນເງິນ", "ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ", "ອື່ນໆ"].
+    - extracted_contact: Extract any phone number, bank account number, or social media handle mentioned. If none, return "ບໍ່ພົບ".`;
+    
+    const userQuery = `Analyze this report: "${reportText}"`;
+
+    const payload = {
+      contents: [{ parts: [{ text: userQuery }] }],
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            "summary": { "type": "STRING" },
+            "suggested_scam_type": { 
+              "type": "STRING",
+              "enum": [
+                "ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ",
+                "ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ",
+                "ສິນຄ້າປອມ/ເລຽນແບບ",
+                "ບໍ່ຍອມຄືນເງິນ",
+                "ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ",
+                "ອື່ນໆ"
+              ]
+            },
+            "extracted_contact": { "type": "STRING" }
+          },
+          required: ["summary", "suggested_scam_type", "extracted_contact"]
+        }
+      }
+    };
+
+    let response;
+    let retries = 3;
+    let delay = 1000;
+
+    while (retries > 0) {
+        try {
+            response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return candidate.content.parts[0].text;
+                } else {
+                    throw new Error("Invalid response structure from API.");
+                }
+            } else {
+                 throw new Error(`API request failed with status ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`API Error: ${error.message}. Retries left: ${retries - 1}`);
+            retries--;
+            if (retries === 0) {
+                throw error; 
+            }
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2; 
+        }
+    }
+}
+
+async function handleAnalyzeReport() {
+    const detailsText = document.getElementById('details').value;
+    if (!detailsText || detailsText.trim().length < 10) {
+        showSuccessMessage("❗ ກະລຸນາໃສ່ລາຍລະອຽດຢ່າງໜ້ອຍ 10 ຕົວອັກສອນ.");
+        return;
+    }
+    
+    showLoading("ກຳລັງວິເຄາະ AI...");
+    
+    try {
+        const jsonResponse = await callGeminiApi(detailsText);
+        const data = JSON.parse(jsonResponse);
+        
+        if (aiSummary) aiSummary.textContent = data.summary || "ບໍ່ມີ";
+        if (aiScamType) aiScamType.textContent = data.suggested_scam_type || "ບໍ່ມີ";
+        if (aiContact) aiContact.textContent = data.extracted_contact || "ບໍ່ພົບ";
+        
+        const scamTypeDropdown = document.getElementById('scamType');
+        if (data.suggested_scam_type && scamTypeDropdown) {
+            const optionExists = [...scamTypeDropdown.options].some(opt => opt.value === data.suggested_scam_type);
+            if (optionExists) {
+                scamTypeDropdown.value = data.suggested_scam_type;
+            }
+        }
+        
+        aiAnalysisResult.classList.remove('hidden');
+        showSuccessMessage("✅ ວິເຄາະ AI ສຳເລັດ!");
+
+    } catch (error) {
+        console.error("Gemini analysis failed:", error);
+        showSuccessMessage("❗ ການວິເຄາະ AI ລົ້ມເຫລວ. ກະລຸນາລອງໃໝ່.");
+    } finally {
+        hideLoading();
+    }
+}
+// --- END GEMINI API ---
+
+
+// --- AUTH CHECKER AND MODAL CONTROLS (Demo Mode) ---
+
+// Function to switch between Login and Register modes
+window.switchProfileAuthMode = function(mode) {
+    const isRegister = mode === 'register';
+    
+    document.getElementById('loginTab').classList.remove('active');
+    document.getElementById('registerTab').classList.remove('active');
+
+    if (isRegister) {
+        document.getElementById('registerTab').classList.add('active');
+        authSubmitButton.textContent = 'ລົງທະບຽນ (Demo)';
+        authConfirmPasswordInput.classList.remove('hidden');
+        // authConfirmPasswordInput.setAttribute('required', 'required'); // Not strictly needed for demo
+    } else {
+        document.getElementById('loginTab').classList.add('active');
+        authSubmitButton.textContent = 'ເຂົ້າສູ່ລະບົບ (Demo)';
+        authConfirmPasswordInput.classList.add('hidden');
+        // authConfirmPasswordInput.removeAttribute('required');
+    }
+    authModeInput.value = mode;
+}
+
+// Global function to protect actions (Demo Mode)
+function checkAuthForAction(actionCallback, context) {
+    if (isLoggedIn) {
+        actionCallback();
+    } else {
+        // Not logged in, redirect to Profile screen's auth form
+        navigateToProfile('login', context);
+    }
+}
+
+// Handler for simulating Login/Register click (Demo Mode)
+window.handleAuthForm = function() {
+    const mode = authModeInput.value;
+    const email = authEmailInput.value; // Get values but don't really use them
+    const password = authPasswordInput.value;
+    
+    showLoading("ກຳລັງເຂົ້າສູ່ລະບົບ...");
+    
+    // Simulate a successful login/registration
+    setTimeout(() => {
+        isLoggedIn = true;
+        demoUserId = `demo-${Math.random().toString(36).substring(2, 10)}`; // Generate random demo ID
+        console.log("Simulated login successful. Demo User ID:", demoUserId);
+        
+        hideLoading();
+        showSuccessMessage(mode === 'register' ? `✅ ລົງທະບຽນສຳເລັດ!` : `✅ ເຂົ້າສູ່ລະບົບສຳເລັດ!`);
+        
+        // Navigate based on context after simulated login
+        if(afterAuthContext === 'reportForm') {
+            showReportForm(); 
+        } else if (afterAuthContext === 'myReports') {
+            showMyReports(); 
+        } else {
+            navigateToProfile(); // Default to showing the profile view
+        }
+        afterAuthContext = 'home'; // Reset context
+        
+    }, 500); // Simulate network delay
+}
+
+
+// Logout handler (Demo Mode)
+window.handleLogout = function() {
+    isLoggedIn = false;
+    demoUserId = null;
+    myReports = []; // Clear personal data on logout in demo
+    showSuccessMessage('👋 ທ່ານອອກຈາກລະບົບແລ້ວ.');
+    navigateToProfile(); // Show login form
+}
+// ---------------------------------------
+
+// --- NAVIGATION (Uses isLoggedIn instead of userId) ---
+function updateBottomNav(activeTab) {
+    document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    if (activeTab) {
+        document.getElementById(activeTab).classList.add('active');
+    }
+}
+
+window.hideAllScreens = function() {
+    [homeScreen, searchScreen, reportScreen, myReportsScreen, userProfileScreen, contactScreen].forEach(s => {
+        if(s) s.classList.add('hidden');
+    });
+}
+
+window.navigateToHome = function() {
+    hideAllScreens();
+    if(homeScreen) {
+        homeScreen.classList.remove('hidden');
+        homeScreen.parentElement.scrollTop = 0; 
+    }
+    updateBottomNav('navHome');
+    updateCounts(); 
+}
+
+window.navigateToSearch = function() {
+    hideAllScreens();
+    if(searchScreen) {
+        searchScreen.classList.remove('hidden');
+        searchScreen.parentElement.scrollTop = 0; 
+    }
+    updateBottomNav('navSearch');
+    renderPublicReports(); 
+}
+
+window.navigateToReportForm = function() {
+    checkAuthForAction(showReportForm, 'reportForm');
+}
+
+window.navigateToMyReports = function() {
+    checkAuthForAction(showMyReports, 'myReports');
+}
+
+window.navigateToContact = function() {
+    hideAllScreens();
+    if(contactScreen) {
+        contactScreen.classList.remove('hidden');
+        contactScreen.parentElement.scrollTop = 0; 
+    }
+    updateBottomNav('navContact');
+}
+
+window.navigateToProfile = function(mode = null, context = 'home') {
+    hideAllScreens();
+    if(userProfileScreen) {
+        userProfileScreen.classList.remove('hidden');
+        userProfileScreen.parentElement.scrollTop = 0; 
+    }
+    updateBottomNav('navProfile');
+    
+    afterAuthContext = context; 
+
+    if (isLoggedIn) { // Use isLoggedIn
+        // User is logged in, show profile
+        if(profileViewContainer) profileViewContainer.classList.remove('hidden');
+        if(profileAuthContainer) profileAuthContainer.classList.add('hidden');
+        
+        const uidEl = document.getElementById('profileUserId');
+        if (uidEl) uidEl.textContent = demoUserId; // Use demoUserId
+        const countEl = document.getElementById('profileReportCountBtn');
+        if (countEl) countEl.textContent = myReports.length;
+        
+        updateCounts(); 
+
+    } else {
+        // User is not logged in, show auth form
+        if(profileViewContainer) profileViewContainer.classList.add('hidden');
+        if(profileAuthContainer) profileAuthContainer.classList.remove('hidden');
+        switchProfileAuthMode(mode || 'login');
+    }
+}
+
+function showReportForm() {
+    hideAllScreens();
+    if(reportScreen) {
+        reportScreen.classList.remove('hidden');
+        reportScreen.parentElement.scrollTop = 0; 
+    }
+    updateBottomNav(null); 
+}
+
+function showMyReports() {
+    hideAllScreens();
+    if(myReportsScreen) {
+        myReportsScreen.classList.remove('hidden');
+        myReportsScreen.parentElement.scrollTop = 0; 
+    }
+    updateBottomNav('navProfile'); 
+    renderMyReports();
+}
+// ---------------------------------------
+
+// --- DATA RENDERING & LOGIC (Uses isLoggedIn instead of userId) ---
+
+// Counters
+function updateCounts(){
+  const publicReportsTotalEl = document.getElementById('publicReportsTotal');
+  if (publicReportsTotalEl) publicReportsTotalEl.textContent = publicReports.length;
+
+  const totalScamsEl = document.getElementById('totalScams');
+  if (totalScamsEl) totalScamsEl.textContent = publicReports.length;
+  
+  const totalDamage = publicReports.reduce((sum,r)=> sum + (parseInt((r.amount||'0').toString().replace(/[^0-9]/g,''))||0), 0);
+  const totalDamageEl = document.getElementById('totalDamage');
+  
+  if (totalDamageEl) {
+      if (totalDamage >= 1000000) {
+          totalDamageEl.textContent = (totalDamage / 1000000).toFixed(1) + 'M';
+      } else if (totalDamage >= 1000) {
+          totalDamageEl.textContent = (totalDamage / 1000).toFixed(1) + 'K';
+      } else {
+          totalDamageEl.textContent = totalDamage.toLocaleString();
+      }
+  }
+  
+  renderRecentReports();
+}
+
+// Toast
+function showSuccessMessage(msg){
+  const isError = msg.includes('❗');
+  const bgColor = isError ? 'bg-orange-500' : 'bg-green-500';
+  const toast = document.createElement('div'); 
+  toast.className = `fixed top-12 right-1/2 translate-x-1/2 w-11/12 max-w-sm ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg z-[101] text-center`;
+  toast.style.animation = 'slideInFromTop 0.3s ease-out';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(()=> {
+      toast.style.animation = 'slideOutToTop 0.3s ease-in';
+      setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function createReportCardHTML(item) {
+    const isMy = item.isMyReport && isLoggedIn; // Use isLoggedIn
+    return `
+    <div class="report-card">
+        <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-bold text-red-700 break-words flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 flex-shrink-0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <span>${item.sellerName}</span>
+            </h3>
+            <span class="text-xs text-gray-400 whitespace-nowrap pl-2">${item.date}</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-4 text-sm">
+            <div>
+                <strong class="text-gray-500 block">ຊ່ອງທາງ:</strong>
+                <span class="text-gray-800">${item.platform}</span>
+            </div>
+            <div>
+                <strong class="text-gray-500 block">ປະເພດ:</strong>
+                <span class="text-gray-800">${item.scamType}</span>
+            </div>
+            ${item.contact ? `
+            <div class="col-span-2">
+                <strong class="text-gray-500 block">ຕິດຕໍ່:</strong>
+                <span class="text-gray-800 break-all">${item.contact}</span>
+            </div>` : ''}
+             ${item.amount ? `
+            <div class="col-span-2">
+                <strong class="text-gray-500 block">ເສຍຫາຍ:</strong>
+                <span class="text-orange-600 font-bold text-lg">${parseInt(item.amount).toLocaleString()} ກີບ</span>
+            </div>` : ''}
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-3 mt-4 border border-gray-200">
+            <p class="text-gray-600 text-sm leading-relaxed line-clamp-3">${item.details}</p>
+        </div>
+        
+        <div class="flex justify-between items-center text-xs text-gray-400 mt-4 pt-3 border-t border-gray-100">
+            <span>ແຈ້ງໂດຍ: <strong>${item.reporterName}</strong></span>
+             ${isMy ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-medium">ຂອງຂ້ອຍ</span>' : ''}
+        </div>
+    </div>
+    `;
+}
+
+function renderRecentReports() {
+    const container = document.getElementById('recentReportsContainer');
+    if (!container) return; 
+    
+    const recent = publicReports.slice(0, 3);
+    if (recent.length === 0) {
+         container.innerHTML = `<p class="text-center text-gray-500 py-4">ຍັງບໍ່ມີລາຍງານ</p>`;
+         return;
+    }
+    container.innerHTML = recent.map(createReportCardHTML).join('');
+}
+
+function renderMyReports(){
+  const container = document.getElementById('myReportsContainer');
+  if (!container) return; 
+  
+  const totalEl = document.getElementById('myReportsTotal');
+  if (totalEl) totalEl.textContent = myReports.length;
+
+  if (!isLoggedIn) { // Use isLoggedIn
+      container.innerHTML = `
+        <div class="text-center py-12 text-gray-500 px-6">
+          <div class="text-6xl mb-6 text-red-500">🔒</div>
+          <p class="text-lg font-bold mb-3 text-gray-700">ກະລຸນາເຂົ້າສູ່ລະບົບ</p>
+          <p class="text-base mb-6">ທ່ານຕ້ອງເຂົ້າສູ່ລະບົບເພື່ອເບິ່ງລາຍການນີ້.</p>
+          <button onclick="navigateToProfile('login', 'myReports');" class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-xl text-lg font-bold touch-target shadow-lg">
+            ໄປທີ່ໜ້າໂປຣໄຟລ໌
+          </button>
+        </div>`;
+      return;
+  }
+  
+  if(!myReports.length){
+    container.innerHTML = `
+      <div class="text-center py-12 text-gray-500">
+        <div class="text-6xl mb-4">📝</div>
+        <p class="text-base font-medium">ທ່ານຍັງບໍ່ໄດ້ແຈ້ງລາຍງານໃດໆ</p>
+        <p class="text-sm mt-2 mb-6">ເລີ່ມຕົ້ນດ້ວຍການແຈ້ງຜູ້ຂາຍທີ່ບໍ່ໜ້າເຊື່ອຖື</p>
+        <button onclick="navigateToReportForm()" class="mt-6 bg-red-600 text-white px-8 py-3 rounded-lg font-bold text-lg">ແຈ້ງລາຍງານໃໝ່</button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = myReports.map(item => {
+    const cardHTML = createReportCardHTML(item);
+    const buttonsHTML = `
+      <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+        <button onclick="editReport(${item.id})" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl text-sm font-bold transition-colors touch-target shadow-lg flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+            ແກ້ໄຂ
+        </button>
+        <button onclick="showDeleteInfo()" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white py-3 px-4 rounded-xl text-sm font-bold transition-colors touch-target shadow-lg flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            ລົບ
+        </button>
+      </div>`;
+    return cardHTML.replace(/<\/div>\s*$/, `${buttonsHTML}</div>`); 
+  }).join('');
+}
+
+function renderPublicReports(reports = publicReports){
+  const container = document.getElementById('publicReportsContainer');
+  if (!container) return; 
+  
+  const totalEl = document.getElementById('publicReportsTotal');
+  if (totalEl) totalEl.textContent = reports.length;
+  
+  if (reports.length === 0) {
+      container.innerHTML = `<p class="text-center text-gray-500 py-10">ບໍ່ພົບລາຍງານທີ່ກົງກັນ</p>`;
+      return;
+  }
+
+  container.innerHTML = reports.map(createReportCardHTML).join('');
+}
+
+window.editReport = function(id){
+  if (!isLoggedIn) { // Use isLoggedIn
+      navigateToProfile('login', 'myReports'); 
+      return;
+  }
+  
+  const r = myReports.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('editId').value = r.id;
+  document.getElementById('editSellerName').value = r.sellerName;
+  document.getElementById('editPlatform').value   = r.platform;
+  document.getElementById('editContact').value    = r.contact || '';
+  document.getElementById('editScamType').value   = r.scamType;
+  document.getElementById('editAmount').value     = r.amount || '';
+  document.getElementById('editDetails').value    = r.details;
+  document.getElementById('editReporterName').value = r.reporterName;
+  editModal.classList.remove('hidden'); editModal.classList.add('flex');
+}
+
+window.showDeleteInfo = function(){
+  console.log('User attempted to delete, showing info message.');
+  showSuccessMessage('❗ ຫາກຕ້ອງການລົບ ກະລຸນາຕິດຕໍ່ທີມ Support');
+}
+
+function handleEditSubmit(e){
+  e.preventDefault();
+  
+  if (!isLoggedIn) { // Use isLoggedIn
+      closeModal();
+      navigateToProfile('login', 'myReports'); 
+      return;
+  }
+  
+  const id = parseInt(document.getElementById('editId').value);
+  const mi = myReports.findIndex(x=>x.id===id);
+  const pi = publicReports.findIndex(x=>x.id===id);
+  const patch = {
+    sellerName: document.getElementById('editSellerName').value,
+    platform:   document.getElementById('editPlatform').value,
+    contact:    document.getElementById('editContact').value,
+    scamType:   document.getElementById('editScamType').value,
+    amount:     document.getElementById('editAmount').value,
+    details:    document.getElementById('editDetails').value,
+    reporterName: document.getElementById('editReporterName').value
+  };
+  if(mi!==-1) myReports[mi] = { ...myReports[mi], ...patch, isMyReport: true }; // Ensure isMyReport is true
+  if(pi!==-1) publicReports[pi] = { ...publicReports[pi], ...patch, isMyReport: myReports.some(r => r.id === id) }; // Update public if exists
+  closeModal();
+  renderMyReports();
+  showSuccessMessage('✅ ແກ້ໄຂລາຍງານເຮັດບຮ້ອຍແລ້ວ!');
+}
+
+window.closeModal = function(){ editModal.classList.add('hidden'); editModal.classList.remove('flex'); }
+
+function normalizePhoneNumber(phone) {
+  if (typeof phone !== 'string') return '';
+  return phone.replace(/\D/g, '');
+}
+
+// --- AD CAROUSEL (Remains the same) ---
+const adImages = [
+    "https://placehold.co/390x140/ef4444/white?text=ໂຄສະນາ+1",
+    "https://placehold.co/390x140/3b82f6/white?text=ໂຄສະນາ+2",
+    "https://placehold.co/390x140/10b981/white?text=ໂຄສະນາ+3"
+];
+let currentAdIndex = 0;
+let adBannerImageEl = null;
+
+function startAdCarousel() {
+    adBannerImageEl = document.getElementById('adBannerImage');
+    if (!adBannerImageEl) {
+        console.warn("Ad Banner Image element not found.");
+        return;
+    }
+    setInterval(cycleAds, 4000); 
+}
+
+function cycleAds() {
+    if (!adBannerImageEl) return;
+    currentAdIndex = (currentAdIndex + 1) % adImages.length;
+    adBannerImageEl.style.opacity = 0;
+    setTimeout(() => {
+        adBannerImageEl.src = adImages[currentAdIndex];
+        adBannerImageEl.alt = `Ad Banner ${currentAdIndex + 1}`;
+        adBannerImageEl.style.opacity = 1;
+    }, 500); 
+}
+// -------------------
+
+// Auto-init (DOMContentLoaded block)
+document.addEventListener('DOMContentLoaded', ()=>{
+  // DOM Element Assignment
+  homeScreen = document.getElementById('homeScreen');
+  searchScreen = document.getElementById('searchScreen');
+  reportScreen = document.getElementById('reportScreen');
+  myReportsScreen = document.getElementById('myReportsScreen');
+  userProfileScreen = document.getElementById('userProfileScreen');
+  loadingOverlay = document.getElementById('loadingOverlay');
+  contactScreen = document.getElementById('contactScreen'); 
+  
+  reportForm = document.getElementById('reportForm');
+  editModal = document.getElementById('editModal');
+  editForm = document.getElementById('editForm');
+  searchBar = document.getElementById('searchBar');
+  
+  profileViewContainer = document.getElementById('profileViewContainer');
+  profileAuthContainer = document.getElementById('profileAuthContainer');
+  authEmailInput = document.getElementById('authEmail');
+  authPasswordInput = document.getElementById('authPassword');
+  authConfirmPasswordInput = document.getElementById('authConfirmPassword');
+  authSubmitButton = document.getElementById('authSubmitButton');
+  authModeInput = document.getElementById('authMode');
+  
+  analyzeReportButton = document.getElementById('analyzeReportButton');
+  aiAnalysisResult = document.getElementById('aiAnalysisResult');
+  aiSummary = document.getElementById('aiSummary');
+  aiScamType = document.getElementById('aiScamType');
+  aiContact = document.getElementById('aiContact');
+
+
+  // Event Listener Bindings
+  if(reportForm) reportForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    if (!isLoggedIn) { navigateToProfile('login', 'reportForm'); return; } // Use isLoggedIn
+    
+    const data = {
+      id: nextId++,
+      sellerName: document.getElementById('sellerName').value,
+      platform:   document.getElementById('platform').value,
+      contact:    document.getElementById('contact').value,
+      scamType:   document.getElementById('scamType').value,
+      amount:     document.getElementById('amount').value,
+      details:    document.getElementById('details').value,
+      reporterName: document.getElementById('reporterName').value,
+      date: new Date().toLocaleDateString('th-TH'), // Using th-TH for Lao date format compatibility
+      isMyReport: true,
+      reportedBy: demoUserId // Use demoUserId
+    };
+    myReports.unshift(data);
+    publicReports.unshift(data); 
+    reportForm.reset();
+    aiAnalysisResult.classList.add('hidden'); 
+    showSuccessMessage('✅ ສົ່ງລາຍງານເຮັດບຮ້ອຍແລ້ວ!');
+    setTimeout(navigateToMyReports, 1000);
+  });
+
+  if(editForm) editForm.addEventListener('submit', handleEditSubmit);
+  if(document.getElementById('closeModal')) document.getElementById('closeModal').addEventListener('click', closeModal);
+  if(document.getElementById('cancelEdit')) document.getElementById('cancelEdit').addEventListener('click', closeModal);
+  if(editModal) editModal.addEventListener('click', e=>{ if(e.target===editModal) closeModal(); });
+
+  if(searchBar) searchBar.addEventListener('input', (e) => { 
+      const query = e.target.value.toLowerCase();
+      if (query) {
+        const normalizedQuery = normalizePhoneNumber(query);
+        const filteredReports = publicReports.filter(report => {
+          const normalizedContact = normalizePhoneNumber(report.contact);
+          const sellerNameMatch = report.sellerName.toLowerCase().includes(query);
+          const contactMatch = (normalizedQuery.length > 3 && normalizedContact.includes(normalizedQuery));
+          
+          return sellerNameMatch || contactMatch;
+        });
+        renderPublicReports(filteredReports);
+      } else {
+        renderPublicReports(); 
+      }
+  });
+  
+  if(analyzeReportButton) analyzeReportButton.addEventListener('click', handleAnalyzeReport);
+
+  // Initialization
+  initFirebase(); // Still call this, but it does nothing for Firebase in demo mode
+  navigateToHome(); // Start on the home screen
+  startAdCarousel(); 
+});
+  </script>
+</body>
+</html>
+
