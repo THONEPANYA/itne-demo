@@ -313,6 +313,15 @@
                      placeholder="ລະບຸຊື່ຜູ້ຂາຍຫຼືຊື່ຮ້ານ">
             </div>
 
+            <!-- ===== START PROFILE IMAGE URL SECTION ===== -->
+            <div>
+              <label class="block text-base font-medium text-gray-700 mb-3">URL ຮູບໂປຣໄຟລ໌ <span class="text-sm text-gray-500">(ບໍ່ bắt buộc)</span></label>
+              <input type="url" id="profileImageUrl"
+                     class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                     placeholder="URL ຮູບໂປຣໄຟລ໌ (ເຊັ່ນ: https://.../profile.jpg)">
+            </div>
+            <!-- ===== END PROFILE IMAGE URL SECTION ===== -->
+
             <div>
               <label class="block text-base font-medium text-gray-700 mb-3">ຊ່ອງທາງການຂາຍ *</label>
               <select id="platform" required
@@ -376,6 +385,26 @@
                   <p class="text-sm text-gray-700"><strong>ຂໍ້ມູນທີ່ກ່ຽວຂ້ອງ:</strong> <span id="aiContact">...</span></p>
               </div>
             </div>
+
+            <!-- ===== START IMAGE UPLOAD SECTION ===== -->
+            <div>
+              <label class="block text-base font-medium text-gray-700 mb-3">ຫຼັກຖານ/ຮູບພາບ (URL) <span class="text-sm text-gray-500">(ບໍ່ bắt buộc)</span></label>
+              <div class="space-y-3">
+                <input type="url" id="imageUrl1"
+                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                       placeholder="URL ຮູບທີ 1 (ເຊັ່ນ: https://.../image.png)">
+                <input type="url" id="imageUrl2"
+                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                       placeholder="URL ຮູບທີ 2">
+                <input type="url" id="imageUrl3"
+                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                       placeholder="URL ຮູບທີ 3">
+                <input type="url" id="imageUrl4"
+                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                       placeholder="URL ຮູບທີ 4">
+              </div>
+            </div>
+            <!-- ===== END IMAGE UPLOAD SECTION ===== -->
 
             <div>
               <label class="block text-base font-medium text-gray-700 mb-3">ຊື່ຜູ້ແຈ້ງ *</label>
@@ -599,6 +628,16 @@
             <label class="block text-base font-medium text-gray-700 mb-3">ຊື່ຜູ້ຂາຍ/ຮ້ານຄ້າ</label>
             <input type="text" id="editSellerName" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg touch-target">
           </div>
+
+          <!-- ===== START EDIT PROFILE IMAGE URL SECTION ===== -->
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">URL ຮູບໂປຣໄຟລ໌</label>
+            <input type="url" id="editProfileImageUrl"
+                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                   placeholder="URL ຮູບໂປຣໄຟລ໌">
+          </div>
+          <!-- ===== END EDIT PROFILE IMAGE URL SECTION ===== -->
+          
           <div>
             <label class="block text-base font-medium text-gray-700 mb-3">ຊ່ອງທາງການຂາຍ</label>
             <select id="editPlatform" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg touch-target">
@@ -634,6 +673,27 @@
             <label class="block text-base font-medium text-gray-700 mb-3">ລາຍລະອຽດເພີ່ມເຕີມ</label>
             <textarea id="editDetails" required rows="4" class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg resize-none"></textarea>
           </div>
+          
+          <!-- ===== START EDIT IMAGE UPLOAD SECTION ===== -->
+          <div>
+            <label class="block text-base font-medium text-gray-700 mb-3">ຫຼັກຖານ/ຮູບພາບ (URL) <span class="text-sm text-gray-500">(ບໍ່ bắt buộc)</span></label>
+            <div class="space-y-3">
+              <input type="url" id="editImageUrl1"
+                     class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                     placeholder="URL ຮູບທີ 1">
+              <input type="url" id="editImageUrl2"
+                     class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                     placeholder="URL ຮູບທີ 2">
+              <input type="url" id="editImageUrl3"
+                     class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                     placeholder="URL ຮູບທີ 3">
+              <input type="url" id="editImageUrl4"
+                     class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-base touch-target"
+                     placeholder="URL ຮູບທີ 4">
+            </div>
+          </div>
+          <!-- ===== END EDIT IMAGE UPLOAD SECTION ===== -->
+          
           <div>
             <label class="block text-base font-medium text-gray-700 mb-3">ຊື່ຜູ້ແຈ້ງ</label>
             <input type="text" id="editReporterName" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg touch-target">
@@ -696,16 +756,23 @@ let myReports = []; // Will only persist during the session in demo mode
 let publicReports = [
   { id: 1, sellerName: "ຮ້ານແຟຊັ່ນປອມ", platform: "Facebook", contact: "ເບີໂທ: 020 55512345", 
     scamType: "ສົ່ງສິນຄ້າບໍ່ຕົງຕາມທີ່ໂຄສະນາ", amount: "250000",
-    details: "ສັ່ງເສື້ອແບຣນເນມ ...", reporterName: "ນາຍສົມຊາຍ ໃຈດີ", date: "15/11/2567", isMyReport: false },
+    details: "ສັ່ງເສື້ອແບຣນເນມ ...", reporterName: "ນາຍສົມຊາຍ ໃຈດີ", date: "15/11/2567", isMyReport: false,
+    profileImageUrl: 'https://placehold.co/100x100/f87171/ffffff?text=F',
+    imageUrl1: 'https://placehold.co/400x400/fecaca/991b1b?text=Chat+1', 
+    imageUrl2: 'https://placehold.co/400x400/fecaca/991b1b?text=Product+Fake' },
   { id: 2, sellerName: "TechGadget Pro", platform: "Instagram", contact: "IG: @techgadget_pro",
     scamType: "ຮັບເງິນແລ້ວບໍ່ສົ່ງສິນຄ້າ", amount: "1500000",
-    details: "ໂອນເງິນຊື້ iPhone ...", reporterName: "ນາງສາວມາລີ ຮັກດີ", date: "12/11/2567", isMyReport: false },
+    details: "ໂອນເງິນຊື້ iPhone ...", reporterName: "ນາງສາວມາລີ ຮັກດີ", date: "12/11/2567", isMyReport: false,
+    profileImageUrl: 'https://placehold.co/100x100/60a5fa/ffffff?text=T',
+    imageUrl1: 'https://placehold.co/400x400/fee2e2/b91c1c?text=Slip' },
   { id: 3, sellerName: "ຮ້ານຂາຍຢາອອນລາຍ", platform: "Line", contact: "Line: medicine_shop",
     scamType: "ຫຼອກຂາຍສິນຄ້າທີ່ບໍ່ມີຢູ່ຈິງ", amount: "320000",
-    details: "ຂາຍຢາລົດນ້ຳໜັກປອມ ...", reporterName: "ນາງສຸດາ ສຸກໃຈ", date: "10/11/2567", isMyReport: false },
+    details: "ຂາຍຢາລົດນ້ຳໜັກປອມ ...", reporterName: "ນາງສຸດາ ສຸກໃຈ", date: "10/11/2567", isMyReport: false,
+    profileImageUrl: 'https://placehold.co/100x100/34d399/ffffff?text=M' },
   { id: 4, sellerName: "Gaming Store 999", platform: "Shopee", contact: "Shopee: gamingstore999", 
     scamType: "ສິນຄ້າປອມ/ເລຽນແບບ", amount: "850000",
-    details: "ຊື້ PlayStation 5 ...", reporterName: "ນາຍທະນາ ເກມເມີ", date: "8/11/2567", isMyReport: false },
+    details: "ຊື້ PlayStation 5 ...", reporterName: "ນາຍທະນາ ເກມເມີ", date: "8/11/2567", isMyReport: false,
+    profileImageUrl: '' },
   { id: 5, sellerName: "Beauty Cosmetic", platform: "ເວັບໄຊທ໌", contact: "www.beauty-cosmetic.fake",
     scamType: "ບໍ່ຍອມຄືນເງິນ", amount: "420000",
     details: "ຊື້ຄຣີມບຳລຸງຜິວ ...", reporterName: "ນາງນິດາ ສວຍງາມ", date: "5/11/2567", isMyReport: false },
@@ -1115,15 +1182,60 @@ function showSuccessMessage(msg){
 
 function createReportCardHTML(item) {
     const isMy = item.isMyReport && isLoggedIn; // Use isLoggedIn
+    
+    // ===== START PROFILE IMAGE LOGIC =====
+    let profileImageHTML = '';
+    if (item.profileImageUrl && item.profileImageUrl.trim() !== '') {
+        profileImageHTML = `
+            <img src="${item.profileImageUrl}" alt="Profile" class="w-12 h-12 rounded-full object-cover border-2 border-red-100"
+                 onerror="this.src='https://placehold.co/100x100/fecaca/991b1b?text=?'; this.onerror=null;">
+        `;
+    } else {
+        // Default placeholder SVG
+        profileImageHTML = `
+            <div class="w-12 h-12 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center border-2 border-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+        `;
+    }
+    // ===== END PROFILE IMAGE LOGIC =====
+    
+    // ===== START IMAGE DISPLAY LOGIC =====
+    let imagesHTML = '';
+    const images = [item.imageUrl1, item.imageUrl2, item.imageUrl3, item.imageUrl4].filter(url => url && url.trim() !== '');
+    
+    if (images.length > 0) {
+        imagesHTML = `
+        <div class="mt-4">
+            <strong class="text-gray-500 block text-sm mb-2">ຫຼັກຖານ:</strong>
+            <div class="grid grid-cols-4 gap-2">
+                ${images.map(url => `
+                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="block bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                        <img src="${url}" alt="ຫຼັກຖານ" class="w-full h-16 object-cover" 
+                             onerror="this.src='https://placehold.co/100x100/fecaca/991b1b?text=Error'; this.onerror=null; this.parentElement.classList.add('flex', 'items-center', 'justify-center'); this.classList.remove('object-cover'); this.classList.add('w-auto', 'h-auto', 'p-1', 'text-xs');">
+                    </a>
+                `).join('')}
+            </div>
+        </div>`;
+    }
+    // ===== END IMAGE DISPLAY LOGIC =====
+    
     return `
     <div class="report-card">
-        <div class="flex justify-between items-start mb-4">
-            <h3 class="text-lg font-bold text-red-700 break-words flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 flex-shrink-0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                <span>${item.sellerName}</span>
-            </h3>
-            <span class="text-xs text-gray-400 whitespace-nowrap pl-2">${item.date}</span>
+        <!-- ===== NEW HEADER with Profile Image ===== -->
+        <div class="flex items-start mb-4">
+            <div class="flex-shrink-0 mr-4">
+                ${profileImageHTML}
+            </div>
+            <div class="flex-grow min-w-0">
+                <h3 class="text-lg font-bold text-red-700 break-words">
+                    ${item.sellerName}
+                </h3>
+                <span class="text-xs text-gray-400">${item.date}</span>
+            </div>
         </div>
+        <!-- ===== END NEW HEADER ===== -->
+
         <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-4 text-sm">
             <div>
                 <strong class="text-gray-500 block">ຊ່ອງທາງ:</strong>
@@ -1148,6 +1260,9 @@ function createReportCardHTML(item) {
         <div class="bg-gray-50 rounded-lg p-3 mt-4 border border-gray-200">
             <p class="text-gray-600 text-sm leading-relaxed line-clamp-3">${item.details}</p>
         </div>
+        
+        <!-- Inject Images HTML Here -->
+        ${imagesHTML} 
         
         <div class="flex justify-between items-center text-xs text-gray-400 mt-4 pt-3 border-t border-gray-100">
             <span>ແຈ້ງໂດຍ: <strong>${item.reporterName}</strong></span>
@@ -1242,12 +1357,20 @@ window.editReport = function(id){
   if(!r) return;
   document.getElementById('editId').value = r.id;
   document.getElementById('editSellerName').value = r.sellerName;
+  document.getElementById('editProfileImageUrl').value = r.profileImageUrl || '';
   document.getElementById('editPlatform').value   = r.platform;
   document.getElementById('editContact').value    = r.contact || '';
   document.getElementById('editScamType').value   = r.scamType;
   document.getElementById('editAmount').value     = r.amount || '';
   document.getElementById('editDetails').value    = r.details;
   document.getElementById('editReporterName').value = r.reporterName;
+  
+  // ===== POPULATE EDIT IMAGE FIELDS =====
+  document.getElementById('editImageUrl1').value = r.imageUrl1 || '';
+  document.getElementById('editImageUrl2').value = r.imageUrl2 || '';
+  document.getElementById('editImageUrl3').value = r.imageUrl3 || '';
+  document.getElementById('editImageUrl4').value = r.imageUrl4 || '';
+  
   editModal.classList.remove('hidden'); editModal.classList.add('flex');
 }
 
@@ -1268,17 +1391,26 @@ function handleEditSubmit(e){
   const id = parseInt(document.getElementById('editId').value);
   const mi = myReports.findIndex(x=>x.id===id);
   const pi = publicReports.findIndex(x=>x.id===id);
+  
   const patch = {
     sellerName: document.getElementById('editSellerName').value,
+    profileImageUrl: document.getElementById('editProfileImageUrl').value,
     platform:   document.getElementById('editPlatform').value,
     contact:    document.getElementById('editContact').value,
     scamType:   document.getElementById('editScamType').value,
     amount:     document.getElementById('editAmount').value,
     details:    document.getElementById('editDetails').value,
-    reporterName: document.getElementById('editReporterName').value
+    reporterName: document.getElementById('editReporterName').value,
+    // ===== ADD IMAGE URLS TO PATCH =====
+    imageUrl1: document.getElementById('editImageUrl1').value,
+    imageUrl2: document.getElementById('editImageUrl2').value,
+    imageUrl3: document.getElementById('editImageUrl3').value,
+    imageUrl4: document.getElementById('editImageUrl4').value
   };
+  
   if(mi!==-1) myReports[mi] = { ...myReports[mi], ...patch, isMyReport: true }; // Ensure isMyReport is true
   if(pi!==-1) publicReports[pi] = { ...publicReports[pi], ...patch, isMyReport: myReports.some(r => r.id === id) }; // Update public if exists
+  
   closeModal();
   renderMyReports();
   showSuccessMessage('✅ ແກ້ໄຂລາຍງານເຮັດບຮ້ອຍແລ້ວ!');
@@ -1360,12 +1492,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const data = {
       id: nextId++,
       sellerName: document.getElementById('sellerName').value,
+      profileImageUrl: document.getElementById('profileImageUrl').value,
       platform:   document.getElementById('platform').value,
       contact:    document.getElementById('contact').value,
       scamType:   document.getElementById('scamType').value,
       amount:     document.getElementById('amount').value,
       details:    document.getElementById('details').value,
       reporterName: document.getElementById('reporterName').value,
+      // ===== ADD IMAGE URLS TO DATA =====
+      imageUrl1: document.getElementById('imageUrl1').value,
+      imageUrl2: document.getElementById('imageUrl2').value,
+      imageUrl3: document.getElementById('imageUrl3').value,
+      imageUrl4: document.getElementById('imageUrl4').value,
+      // ==================================
       date: new Date().toLocaleDateString('th-TH'), // Using th-TH for Lao date format compatibility
       isMyReport: true,
       reportedBy: demoUserId // Use demoUserId
