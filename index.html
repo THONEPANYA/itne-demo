@@ -22,10 +22,8 @@
     body {
       box-sizing: border-box;
       font-family: 'Noto Sans Lao', sans-serif;
-      background-color: #f3f4f6; /* bg-gray-100 */
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background-color: #d1d5db; /* bg-gray-300 - Changed to match <body> tag */
+      /* Removed flex properties for mobile-first */
       min-height: 100vh;
       overscroll-behavior: none; /* Prevents pull-to-refresh */
     }
@@ -33,13 +31,13 @@
 
     /* iPhone 14 Pro Max optimizations */
     .container-mobile {
-      width: 430px;
-      height: 932px;
-      margin: 0 auto;
+      width: 100%;
+      height: 100vh; /* Fill screen height */
+      margin: 0;
       background-color: #f3f4f6; /* bg-gray-100 */
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      box-shadow: none; /* No shadow on mobile */
       overflow: hidden;
-      border-radius: 20px;
+      border-radius: 0; /* No radius on mobile */
       position: relative;
       display: flex;
       flex-direction: column;
@@ -51,13 +49,11 @@
         padding-bottom: 90px; /* Space for bottom nav */
     }
 
-    @media (max-width: 430px) {
-      .container-mobile {
-        width: 100%;
-        height: 100vh;
-        border-radius: 0;
-      }
-    }
+    /* REMOVED: @media (min-width: 450px) block.
+      This block was forcing the container to a fixed 430px width on larger screens.
+      By removing it, the .container-mobile styles (width: 100%, height: 100vh)
+      will now apply to all screen sizes, making the app fully responsive.
+    */
 
     .fade-in { animation: fadeIn 0.3s ease-in-out; }
     @keyframes fadeIn {
@@ -1549,4 +1545,3 @@ document.addEventListener('DOMContentLoaded', ()=>{
   </script>
 </body>
 </html>
-
